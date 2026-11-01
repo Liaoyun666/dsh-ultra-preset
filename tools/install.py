@@ -26,6 +26,20 @@ import sys
 from pathlib import Path
 from typing import NoReturn
 
+def _ensure_utf8(stream):
+    """Windows 的管道/控制台可能是 cp1252，直接打印中文会 UnicodeEncodeError。"""
+    try:
+        "超频".encode(stream.encoding or "utf-8")
+    except (LookupError, UnicodeEncodeError):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
+for _stream in (sys.stdout, sys.stderr):
+    _ensure_utf8(_stream)
+
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 

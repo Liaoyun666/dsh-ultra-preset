@@ -16,6 +16,20 @@ import sys
 import tempfile
 from pathlib import Path
 
+def _ensure_utf8(stream):
+    """Windows 的管道/控制台可能是 cp1252，直接打印中文会 UnicodeEncodeError。"""
+    try:
+        "超频".encode(stream.encoding or "utf-8")
+    except (LookupError, UnicodeEncodeError):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
+for _stream in (sys.stdout, sys.stderr):
+    _ensure_utf8(_stream)
+
 ROOT = Path(__file__).resolve().parent.parent
 BLOCK_PATH = ROOT / "preset" / "ultra.patch.block.yml"
 INSTALL_PATH = ROOT / "tools" / "install.py"
